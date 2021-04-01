@@ -53,6 +53,8 @@ type Config struct {
 	// Used to get Bitrise Apple Developer Portal Connection
 	BuildURL      string          `env:"BITRISE_BUILD_URL"`
 	BuildAPIToken stepconf.Secret `env:"BITRISE_BUILD_API_TOKEN"`
+	GitMsg        string          `env:"BITRISE_GIT_MESSAGE"`
+	AppBuild      string          `env:"APP_BUILD"`
 }
 
 const latestStable = "latest-stable"
@@ -391,7 +393,8 @@ alphanumeric characters.`)
 	}
 
 	args := []string{
-		"deliver",
+		"pilot",
+		"upload",
 	}
 
 	authParams, err := FastlaneAuthParams(authConfig)
@@ -444,25 +447,28 @@ alphanumeric characters.`)
 		args = append(args, "--pkg", tmpPkgPath)
 	}
 
-	if cfg.SkipScreenshots == "yes" {
-		args = append(args, "--skip_screenshots")
-	}
+	// if cfg.SkipScreenshots == "yes" {
+	// 	args = append(args, "--skip_screenshots")
+	// }
 
-	if cfg.SkipMetadata == "yes" {
-		args = append(args, "--skip_metadata")
-	}
+	// if cfg.SkipMetadata == "yes" {
+	// 	args = append(args, "--skip_metadata")
+	// }
 
 	if cfg.SkipAppVersionUpdate == "yes" {
 		args = append(args, "--skip_app_version_update")
 	}
 
-	args = append(args, "--force")
+	// args = append(args, "--force")
 
 	if cfg.SubmitForReview == "yes" {
-		args = append(args, "--submit_for_review")
+		args[1] = "distribute"
+		args = append(args, "--distribute_external", "true", "--changelog", cfg.GitMsg, "--groups", "External", "--build_number", cfg.AppBuild)
+	} else {
+		args = append(args, "--skip_waiting_for_build_processing", "true")
 	}
 
-	args = append(args, "--platform", cfg.Platform)
+	// args = append(args, "--platform", cfg.Platform)
 
 	args = append(args, options...)
 
